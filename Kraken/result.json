@@ -1,0 +1,11 @@
+{'trades': 
+    {'TABLNH-UIT7S-A73T5V': 
+        {'ordertxid': 'OINQ7A-WPIGF-Y4VOYY', 'postxid': 'TKH2SE-M7IF5-CFI7LT', 'pair': 'XXLMZEUR', 'time': 1614483539.073, 'type': 'buy', 'ordertype': 'limit', 'price': '0.34100000', 'cost': '10.10000000', 'fee': '0.01616000', 'vol': '29.61876832', 'margin': '0.00000000', 'misc': ''},
+    'TIM7GJ-MQ5XA-AO3GMC': 
+        {'ordertxid': 'O7M7QU-4MLPC-MYM7QD', 'postxid': 'TKH2SE-M7IF5-CFI7LT', 'pair': 'XXLMZEUR', 'time': 1614428340.4481, 'type': 'sell', 'ordertype': 'limit', 'price': '0.37500000', 'cost': '10.10000000', 'fee': '0.01616000', 'vol': '26.93333333', 'margin': '0.00000000', 'misc': ''},
+     'TEYGUU-PPJPD-S5HFD3': 
+        {'ordertxid': 'OJYNHB-CKZFI-D53H3O', 'postxid': 'TKH2SE-M7IF5-CFI7LT', 'pair': 'XXLMZEUR', 'time': 1614384205.5374, 'type': 'sell', 'ordertype': 'limit', 'price': '0.34100000', 'cost': '0.00000154', 'fee': '0.00000000', 'vol': '0.00000451', 'margin': '0.00000000', 'misc': ''},
+     'T7J34J-BPTXS-TZDZU3': 
+        {'ordertxid': 'OJYNHB-CKZFI-D53H3O', 'postxid': 'TKH2SE-M7IF5-CFI7LT', 'pair': 'XXLMZEUR', 'time': 1614384203.8681, 'type': 'sell', 'ordertype': 'limit', 'price': '0.34100000', 'cost': '10.99999846', 'fee': '0.01760000', 'vol': '32.25806000', 'margin': '0.00000000', 'misc': ''}
+    }
+    , 'count': 4}
