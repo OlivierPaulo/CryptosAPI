@@ -12,7 +12,7 @@ import hmac
 import base64
 import os
 
-class API(object):
+class KrakenAPI(object):
     """ Maintains a single session between this machine and Kraken.
     Specifying a key/secret pair is optional. If not specified, private
     queries will not be possible.
@@ -182,7 +182,7 @@ class API(object):
 
 if __name__ == '__main__':
     
-    api = API(key=os.environ.get("KRAKEN_API_KEY"), secret=os.environ.get("KRAKEN_API_SECRET"))
+    api = KrakenAPI(key=os.environ.get("KRAKEN_API_KEY"), secret=os.environ.get("KRAKEN_API_SECRET"))
     data = {
         "start": int(time.time())-(3600*24*7),
         "end": int(time.time())

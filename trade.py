@@ -1,9 +1,8 @@
-from Kraken.api import API
+from Kraken.api import KrakenAPI
 import os
 import time
 import pandas as pd
 from Telegram.sendmarkdown import SendMarkdown
-
 
 
 
@@ -17,7 +16,7 @@ if __name__ == '__main__':
 
     ## Read CSV data ##
     cryptos_df = pd.read_csv("data/cryptos.csv")
-    print(cryptos_df.shape)
+    #print(cryptos_df.shape)
 
     ## Declare Kraken Cryptos Symbol / Money
     kraken_cryptos_dict = {
@@ -31,7 +30,7 @@ if __name__ == '__main__':
     }
 
     ### Requesting Kraken Balance ###
-    kraken_balance_api = API(key=os.environ.get("KRAKEN_API_KEY"), secret=os.environ.get("KRAKEN_API_SECRET"))
+    kraken_balance_api = KrakenAPI(key=os.environ.get("KRAKEN_API_KEY"), secret=os.environ.get("KRAKEN_API_SECRET"))
     
     
     kraken_balance_request = kraken_balance_api.query_private(f'Balance')
@@ -40,7 +39,7 @@ if __name__ == '__main__':
 
 
     ### Requesting Kraken Trade History ###
-    kraken_request_api = API(key=os.environ.get("KRAKEN_API_KEY"), secret=os.environ.get("KRAKEN_API_SECRET"))
+    kraken_request_api = KrakenAPI(key=os.environ.get("KRAKEN_API_KEY"), secret=os.environ.get("KRAKEN_API_SECRET"))
 
     data = {
         "start": int(time.time())-(3600*24*14),
@@ -71,8 +70,8 @@ if __name__ == '__main__':
                 trade_type = str(kraken_trade_request['result']['trades'][trade]['type'])
                 time = int(kraken_trade_request['result']['trades'][trade]['time'])
                 crypto_balance = round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)
-                next_buy_price = round(float(round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)/1.1), 3)
-                next_buy_volume = round(float(round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)*0.052635), 3)
+                next_buy_price = round(float(round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)*0.9), 3)
+                next_buy_volume = round(float(round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)*0.053), 3)
                 next_sell_price = round(float(round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)*1.1), 3)
                 next_sell_volume = round(float(round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)*0.05), 3)
 
@@ -93,7 +92,7 @@ if __name__ == '__main__':
                 text += f"Next trade :\n"
                 text += f"*Buy* {str(next_buy_volume).replace('.',',')} {pair[1:4]} @ _{str(next_buy_price).replace('.',',')}_ {pair[5:]}\n"
                 text += f"*Sell* {str(next_sell_volume).replace('.',',')} {pair[1:4]} @ _{str(next_sell_price).replace('.',',')}_ {pair[5:]}\n"
-                print(text)
+                #print(text)
                 SendMarkdown(chat_id=chat_id, text=text, token=telegram_token)
 
         else:
@@ -106,8 +105,8 @@ if __name__ == '__main__':
             trade_type = str(kraken_trade_request['result']['trades'][trade]['type'])
             time = int(kraken_trade_request['result']['trades'][trade]['time'])
             crypto_balance = round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)
-            next_buy_price = round(float(round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)/1.1), 3)
-            next_buy_volume = round(float(round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)*0.052635), 3)
+            next_buy_price = round(float(round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)*0.9), 3)
+            next_buy_volume = round(float(round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)*0.053), 3)
             next_sell_price = round(float(round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)*1.1), 3)
             next_sell_volume = round(float(round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)*0.05), 3)
 
@@ -132,10 +131,10 @@ if __name__ == '__main__':
             text += f"Next trade :\n"
             text += f"*Buy* {str(next_buy_volume).replace('.',',')} {pair[1:4]} @ _{str(next_buy_price).replace('.',',')}_ {pair[5:]}\n"
             text += f"*Sell* {str(next_sell_volume).replace('.',',')} {pair[1:4]} @ _{str(next_sell_price).replace('.',',')}_ {pair[5:]}\n"
-            print(text)
+            #print(text)
             SendMarkdown(chat_id=chat_id, text=text, token=telegram_token)
             
-print(cryptos_df)
+#print(cryptos_df)
 
 
 
