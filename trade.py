@@ -4,7 +4,10 @@ import time
 import pandas as pd
 from Telegram.sendmarkdown import SendMarkdown
 
+DATA_PATH = "data/cryptos.csv"
 
+def read_data():
+    return pd.read_csv(DATA_PATH)
 
 
 
@@ -15,7 +18,7 @@ if __name__ == '__main__':
     telegram_token = os.environ.get('TELEGRAM_API_TOKEN')
 
     ## Read CSV data ##
-    cryptos_df = pd.read_csv("data/cryptos.csv")
+    cryptos_df = read_data()
     #print(cryptos_df.shape)
 
     ## Declare Kraken Cryptos Symbol / Money

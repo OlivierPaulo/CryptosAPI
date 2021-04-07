@@ -27,10 +27,11 @@ class BinanceAPI(object):
         self.secret = secret
         self.uri = 'https://api.binance.com'
         self.apiversion = 'v3'
-        self.session = requests.Session()
+        #self.session = requests.Session()
         self.response = None
         self._json_options = {}
-        self._timestamp = int(1000*time.time())
+        self._timestamp = int(time.time()*1000)
+        #self._timestamp = 1578963600000
         return
 
     def json_options(self, **kwargs):
@@ -45,7 +46,7 @@ class BinanceAPI(object):
         """ Close this session.
         :returns: None
         """
-        self.session.close()
+        #self.session.close()
         return
 
     def load_key(self, path):
@@ -86,7 +87,13 @@ class BinanceAPI(object):
 
 
         url = self.uri + urlpath
-        self.response = self.session.get(url, params = data, headers = headers)
+
+        # print(f"url : {url}")
+        # print(f"type of url : {type(url)}")
+
+        self.response = requests.get(url, params = data, headers = headers)
+
+        # print(self.response.json())
 
         if self.response.status_code not in (200, 201, 202):
             self.response.raise_for_status()
@@ -150,26 +157,32 @@ class BinanceAPI(object):
         :returns: signature digest
         """
         message = urllib.parse.urlencode(data)
+
+        #print(f"Message type : {type(message)}")
         #print(message)
         # Create signature with timestamp, query/data and api secret
-        signature = hmac.new(bytes(self.key, 'utf-8'), bytes(message, 'utf-8'), hashlib.sha256)
-        print(f"python sign : {signature.hexdigest()}")
+        signature = hmac.new(bytes(self.secret, 'utf-8'), bytes(message, 'utf-8'), hashlib.sha256)
+        #print(f"python sign : {signature.hexdigest()}")
         
         
-        req = os.popen(f"echo -n 'recvWindow=10000&timestamp={self._timestamp}' | openssl dgst -sha256 -hmac '{self.secret}'").read().split('= ')
-        print(f"openSSL sign : {req[1].strip()}")
-        return req[1].strip()
+        # req = os.popen(f"echo -n '{message}' | openssl dgst -sha256 -hmac '{self.secret}'").read().split('= ')
+        # print(f"openSSL sign : {req[1].strip()}")
+               
+        
+        return signature.hexdigest()
 
 
 if __name__ == '__main__':
     
+    
+    
     api = BinanceAPI(key=os.environ.get("BINANCE_API_KEY"), secret=os.environ.get("BINANCE_API_SECRET"))
     data = {
-        "recvWindow": 10000
-        #"symbol": "AAVEUSDT"
+        #"recvWindow": 30000
+        "symbol": "CHZUSDT"
     }
 
-    request = api.query_private(f'account', data=data)
+    request = api.query_private(f'myTrades', data=data)
     print(request)
-    api.close()
+    #api.close()
 
