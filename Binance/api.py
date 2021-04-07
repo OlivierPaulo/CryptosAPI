@@ -179,10 +179,25 @@ if __name__ == '__main__':
     api = BinanceAPI(key=os.environ.get("BINANCE_API_KEY"), secret=os.environ.get("BINANCE_API_SECRET"))
     data = {
         #"recvWindow": 30000
-        "symbol": "CHZUSDT"
+        #"symbol": "CHZUSDT"
     }
 
-    request = api.query_private(f'myTrades', data=data)
-    print(request)
-    #api.close()
+    balances = api.query_private(f'account', data=data)
+    print(balances['balances'][-1])
+
+    for balance in balances['balances']:
+        
+        if (float(balance['free']) + float(balance['locked']) > 0.0) and (balance['asset'] not in ['USDT','WABI','NVT']):
+            print(f"{balance['asset']} : {float(balance['free']) + float(balance['locked'])}")
+
+            data = {
+                "symbol": f"{balance['asset']}USDT"
+                #"startTime": int(1000*(time.time()-(3600*24*7)))
+            }
+            trade_request = BinanceAPI(key=os.environ.get("BINANCE_API_KEY"), secret=os.environ.get("BINANCE_API_SECRET"))
+            trades = trade_request.query_private(f"myTrades", data=data)
+            
+            if trades:
+                print(f"Last Trade : {trades[-1]}")
+    
 

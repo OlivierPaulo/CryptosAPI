@@ -1,4 +1,5 @@
 from Kraken.api import KrakenAPI
+from Binance.api import BinanceAPI
 import os
 import time
 import pandas as pd
@@ -61,7 +62,7 @@ if __name__ == '__main__':
 
     for trade in trades_id:
         #print(kraken_trade_request['result']['trades'][trade])
-        if kraken_trade_request['result']['trades'][trade]['pair'] in list(cryptos_df['pair']):
+        if kraken_trade_request['result']['trades'][trade]['pair'] in list(cryptos_df[cryptos_df['platform'] == 'Kraken']['pair']):
             if int(kraken_trade_request['result']['trades'][trade]['time']) > int(cryptos_df[cryptos_df['pair'] == kraken_trade_request['result']['trades'][trade]['pair']]['time']):
                 index = (cryptos_df['pair'] == kraken_trade_request['result']['trades'][trade]['pair'])
 
@@ -138,6 +139,35 @@ if __name__ == '__main__':
             SendMarkdown(chat_id=chat_id, text=text, token=telegram_token)
             
 #print(cryptos_df)
+
+    Binance_api = BinanceAPI(key=os.environ.get("BINANCE_API_KEY"), secret=os.environ.get("BINANCE_API_SECRET"))
+    data = {
+        #"recvWindow": 30000
+        #"symbol": "CHZUSDT"
+    }
+
+    balances = Binance_api.query_private(f'account', data=data)
+    
+    for balance in balances['balances']:
+        
+        if (float(balance['free']) + float(balance['locked']) > 0.0) and (balance['asset'] not in ['USDT','WABI','NVT']):
+            #print(f"{balance['asset']} : {float(balance['free']) + float(balance['locked'])}")
+
+            data = {
+                "symbol": f"{balance['asset']}USDT"
+                #"startTime": int(1000*(time.time()-(3600*24*7)))
+            }
+            binance_trade_request = BinanceAPI(key=os.environ.get("BINANCE_API_KEY"), secret=os.environ.get("BINANCE_API_SECRET"))
+            trades = binance_trade_request.query_private(f"myTrades", data=data)
+            
+            if trades:
+                if data['symbol'] in list(cryptos_df[cryptos_df['platform'] == 'Binance']['pair']):
+                    index = (cryptos_df['pair'] == data['symbol'])# & cryptos_df['platform'] == 'Binance')
+                    #if trades[-1]['time'] > int(cryptos_df.loc[index, 'time']):
+                
+                
+                else:
+                    print(trades[-1])
 
 
 
