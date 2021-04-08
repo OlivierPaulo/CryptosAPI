@@ -10,6 +10,61 @@ DATA_PATH = "data/cryptos.csv"
 def read_data():
     return pd.read_csv(DATA_PATH)
 
+def buy_volume(crypto_balance):
+    return round(float(crypto_balance*0.053), 3)
+
+def buy_price(latest_trade_price):
+    return round(float(latest_trade_price*0.9), 3)
+
+def sell_volume(crypto_balance):
+    return round(float(crypto_balance*0.05), 3)
+
+def sell_price(latest_trade_price):
+    return round(float(latest_trade_price*1.1), 3)
+
+def modify_dataframe_values(df, index, crypto, latest_trade_price, volume_trade, trade_cost, trade_type, time, crypto_balance, next_buy_price, next_buy_volume, next_sell_price, next_sell_volume):
+    df.loc[index, 'latest_trade_price'] = latest_trade_price
+    df.loc[index, 'volume_trade'] = volume_trade
+    df.loc[index, 'trade_cost'] = trade_cost
+    df.loc[index, 'trade_type'] = trade_type
+    df.loc[index, 'time'] = time
+    df.loc[index, 'crypto_balance'] = crypto_balance
+    df.loc[index, 'next_buy_price'] = next_buy_price
+    df.loc[index, 'next_buy_volume'] = next_buy_volume
+    df.loc[index, 'next_sell_price'] = next_sell_price
+    df.loc[index, 'next_sell_volume'] = next_sell_volume
+    
+    return df
+
+
+def append_dataframe(df, platform, crypto, pair, latest_trade_price, volume_trade, trade_cost, trade_type, time, crypto_balance, next_buy_price, next_buy_volume, next_sell_price, next_sell_volume):
+    
+    df = df.append({ 
+        "platform": platform,
+        "crypto": crypto,
+        "pair": pair,
+        "latest_trade_price": latest_trade_price,
+        "volume_trade": volume_trade,
+        "trade_cost": trade_cost,
+        "trade_type": trade_type,
+        "time": time,
+        "crypto_balance": crypto_balance,
+        "next_buy_price": next_buy_price,
+        "next_buy_volume": next_buy_volume,
+        "next_sell_price": next_sell_price,
+        "next_sell_volume": next_sell_volume
+    }, ignore_index=True)
+    
+    return df
+
+def text_message(platform, crypto, trade_type, volume_trade, crypto_symbol, latest_trade_price, fiat, next_buy_volume, next_buy_price, next_sell_volume, next_sell_price):
+
+    text = f"{platform} {crypto} trade : {trade_type.capitalize()} of {str(volume_trade).replace('.',',')} {crypto_symbol} @ {str(latest_trade_price).replace('.',',')} {fiat}\n"
+    text += f"Next trade :\n"
+    text += f"*Buy* {str(next_buy_volume).replace('.',',')} {crypto_symbol} @ _{str(next_buy_price).replace('.',',')}_ {fiat}\n"
+    text += f"*Sell* {str(next_sell_volume).replace('.',',')} {crypto_symbol} @ _{str(next_sell_price).replace('.',',')}_ {fiat}\n"
+    
+    return text
 
 
 if __name__ == '__main__':
@@ -22,6 +77,10 @@ if __name__ == '__main__':
     cryptos_df = read_data()
     #print(cryptos_df.shape)
 
+####################
+### KRAKEN TRADE ###
+####################
+
     ## Declare Kraken Cryptos Symbol / Money
     kraken_cryptos_dict = {
         "ZEUR":"Euro",
@@ -30,7 +89,8 @@ if __name__ == '__main__':
         "XXRP":"Ripple",
         "XXLM":"Stellar",
         "XXMR":"Monero",
-        "EOS":"Eos"
+        "EOS":"Eos",
+        "XDOT":"Polkadot"
     }
 
     ### Requesting Kraken Balance ###
@@ -50,6 +110,7 @@ if __name__ == '__main__':
         "end": int(time.time())
     }
 
+    ### Requesting Trade History in Kraken ###
     kraken_trade_request = kraken_request_api.query_private(f'TradesHistory', data=data)
     #print(kraken_trade_request)
     kraken_request_api.close()
@@ -62,9 +123,12 @@ if __name__ == '__main__':
 
     for trade in trades_id:
         #print(kraken_trade_request['result']['trades'][trade])
+        ### Check if the pair trade is inside the DataFrame of existing trades ###
         if kraken_trade_request['result']['trades'][trade]['pair'] in list(cryptos_df[cryptos_df['platform'] == 'Kraken']['pair']):
-            if int(kraken_trade_request['result']['trades'][trade]['time']) > int(cryptos_df[cryptos_df['pair'] == kraken_trade_request['result']['trades'][trade]['pair']]['time']):
-                index = (cryptos_df['pair'] == kraken_trade_request['result']['trades'][trade]['pair'])
+
+            ### Check if this trade is more recent than the one stored in the DataFrame ### 
+            if int(kraken_trade_request['result']['trades'][trade]['time']) > int(cryptos_df[(cryptos_df['platform'] == 'Kraken') & (cryptos_df['pair'] == kraken_trade_request['result']['trades'][trade]['pair'])]['time']):
+                index = (cryptos_df[cryptos_df['platform'] == 'Kraken']['pair'] == kraken_trade_request['result']['trades'][trade]['pair'])
 
                 crypto = str(kraken_cryptos_dict[kraken_trade_request['result']['trades'][trade]['pair'][0:4]])
                 pair = str(kraken_trade_request['result']['trades'][trade]['pair'])
@@ -74,33 +138,21 @@ if __name__ == '__main__':
                 trade_type = str(kraken_trade_request['result']['trades'][trade]['type'])
                 time = int(kraken_trade_request['result']['trades'][trade]['time'])
                 crypto_balance = round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)
-                next_buy_price = round(float(round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)*0.9), 3)
-                next_buy_volume = round(float(round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)*0.053), 3)
-                next_sell_price = round(float(round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)*1.1), 3)
-                next_sell_volume = round(float(round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)*0.05), 3)
+                next_buy_price = buy_price(latest_trade_price)
+                next_buy_volume = buy_volume(crypto_balance)
+                next_sell_price = sell_price(latest_trade_price)
+                next_sell_volume = sell_volume(crypto_balance)
 
-                cryptos_df.loc[index, 'latest_trade_price'] = latest_trade_price
-                cryptos_df.loc[index, 'volume_trade'] = volume_trade
-                cryptos_df.loc[index, 'trade_cost'] = trade_cost
-                cryptos_df.loc[index, 'trade_type'] = trade_type
-                cryptos_df.loc[index, 'time'] = time
-                cryptos_df.loc[index, 'crypto_balance'] = crypto_balance
-                cryptos_df.loc[index, 'next_buy_price'] = next_buy_price
-                cryptos_df.loc[index, 'next_buy_volume'] = next_buy_volume
-                cryptos_df.loc[index, 'next_sell_price'] = next_sell_price
-                cryptos_df.loc[index, 'next_sell_volume'] = next_sell_volume
-
-                #print(cryptos_df)
-
-                text = f"Kraken {crypto} trade : {trade_type.capitalize()} of {str(volume_trade).replace('.',',')} {pair[1:4]} @ {str(latest_trade_price).replace('.',',')} {pair[5:]}\n"
-                text += f"Next trade :\n"
-                text += f"*Buy* {str(next_buy_volume).replace('.',',')} {pair[1:4]} @ _{str(next_buy_price).replace('.',',')}_ {pair[5:]}\n"
-                text += f"*Sell* {str(next_sell_volume).replace('.',',')} {pair[1:4]} @ _{str(next_sell_price).replace('.',',')}_ {pair[5:]}\n"
-                #print(text)
+                ### Store/Replace the most recent trade of this pair into the DataFrame ###
+                cryptos_df = modify_dataframe_values(cryptos_df, index, crypto, latest_trade_price, volume_trade, trade_cost, trade_type, time, crypto_balance, next_buy_price, next_buy_volume, next_sell_price, next_sell_volume)
+                
+                ### Send a Telegram notifiction of this trade ###
+                text = text_message("Kraken", crypto, trade_type, volume_trade, pair[1:4], latest_trade_price, pair[5:], next_buy_volume, next_buy_price, next_sell_volume, next_sell_price)
                 SendMarkdown(chat_id=chat_id, text=text, token=telegram_token)
 
         else:
             
+            ### This trade is not inside the DataFrame then store it as a new trade inside the DataFrame ### 
             crypto = str(kraken_cryptos_dict[kraken_trade_request['result']['trades'][trade]['pair'][0:4]])
             pair = str(kraken_trade_request['result']['trades'][trade]['pair'])
             latest_trade_price = round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)
@@ -109,36 +161,37 @@ if __name__ == '__main__':
             trade_type = str(kraken_trade_request['result']['trades'][trade]['type'])
             time = int(kraken_trade_request['result']['trades'][trade]['time'])
             crypto_balance = round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)
-            next_buy_price = round(float(round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)*0.9), 3)
-            next_buy_volume = round(float(round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)*0.053), 3)
-            next_sell_price = round(float(round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)*1.1), 3)
-            next_sell_volume = round(float(round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)*0.05), 3)
+            next_buy_price = buy_price(latest_trade_price)
+            next_buy_volume = buy_volume(crypto_balance)
+            next_sell_price = sell_price(latest_trade_price)
+            next_sell_volume = sell_volume(crypto_balance)
 
-            cryptos_df = cryptos_df.append({ 
-                "platform": "Kraken",
-                "crypto": crypto,
-                "pair": pair,
-                "latest_trade_price": latest_trade_price,
-                "volume_trade": volume_trade,
-                "trade_cost": trade_cost,
-                "trade_type": trade_type,
-                "time": time,
-                "crypto_balance": crypto_balance,
-                "next_buy_price": next_buy_price,
-                "next_buy_volume": next_buy_volume,
-                "next_sell_price": next_sell_price,
-                "next_sell_volume": next_sell_volume
-            }, ignore_index=True)
-
-
-            text = f"Kraken {crypto} trade : {trade_type.capitalize()} of {str(volume_trade).replace('.',',')} {pair[1:4]} @ {str(latest_trade_price).replace('.',',')} {pair[5:]}\n"
-            text += f"Next trade :\n"
-            text += f"*Buy* {str(next_buy_volume).replace('.',',')} {pair[1:4]} @ _{str(next_buy_price).replace('.',',')}_ {pair[5:]}\n"
-            text += f"*Sell* {str(next_sell_volume).replace('.',',')} {pair[1:4]} @ _{str(next_sell_price).replace('.',',')}_ {pair[5:]}\n"
-            #print(text)
+            cryptos_df = append_dataframe(cryptos_df, "Kraken", crypto, pair, latest_trade_price, volume_trade, trade_cost, trade_type, time, crypto_balance, next_buy_price, next_buy_volume, next_sell_price, next_sell_volume)            
+            text = text_message("Kraken", crypto, trade_type, volume_trade, pair[1:4], latest_trade_price, pair[5:], next_buy_volume, next_buy_price, next_sell_volume, next_sell_price)
+            
             SendMarkdown(chat_id=chat_id, text=text, token=telegram_token)
             
-#print(cryptos_df)
+
+#####################
+### BINANCE TRADE ###
+#####################
+
+    binance_cryptos_dict = {
+        "EUR": "Euro",
+        "USD": "Dollar",
+        "USDT": "Tether",
+        "BTC": "Bitcoin",
+        "ADA": "Cardano",
+        "CHZ": "Chiliz",
+        "SUSHI": "SushiSwap",
+        "UNI": "Uniswap",
+        "DOGE": "Dogecoin",
+        "AAVE": "Aave",
+        "ETH": "Ethereum",
+        "BNB": "Binance Coin",
+        "LINK": "Chainlink"
+    }
+
 
     Binance_api = BinanceAPI(key=os.environ.get("BINANCE_API_KEY"), secret=os.environ.get("BINANCE_API_SECRET"))
     data = {
@@ -154,22 +207,55 @@ if __name__ == '__main__':
             #print(f"{balance['asset']} : {float(balance['free']) + float(balance['locked'])}")
 
             data = {
-                "symbol": f"{balance['asset']}USDT"
+                "symbol": str(f"{balance['asset']}USDT")
                 #"startTime": int(1000*(time.time()-(3600*24*7)))
             }
             binance_trade_request = BinanceAPI(key=os.environ.get("BINANCE_API_KEY"), secret=os.environ.get("BINANCE_API_SECRET"))
             trades = binance_trade_request.query_private(f"myTrades", data=data)
             
             if trades:
+                latest_trade = trades[-1]
+                crypto = str(binance_cryptos_dict[str(balance['asset'])])
+                pair = str(data['symbol'])
+                latest_trade_price = round(float(latest_trade['price']), 3)
+                volume_trade = round(float(latest_trade['qty']), 3)
+                trade_cost = round(float(latest_trade['quoteQty']), 3)
+                if latest_trade['isBuyer']:
+                    trade_type = "buy"
+                else:
+                    trade_type = "sell"
+                time = int(latest_trade['time'])
+                crypto_balance = round(float(balance['free']) + float(balance['locked']), 3)
+                next_buy_price = buy_price(latest_trade_price)
+                next_buy_volume = buy_volume(crypto_balance)
+                next_sell_price = sell_price(latest_trade_price)
+                next_sell_volume = sell_volume(crypto_balance)
+
+                ### Check if this trade pair is inside the DataFrame ###
                 if data['symbol'] in list(cryptos_df[cryptos_df['platform'] == 'Binance']['pair']):
-                    index = (cryptos_df['pair'] == data['symbol'])# & cryptos_df['platform'] == 'Binance')
-                    #if trades[-1]['time'] > int(cryptos_df.loc[index, 'time']):
+
+                    index = (cryptos_df[cryptos_df['platform'] == 'Binance']['pair'] == data['symbol'])
+                    
+                    ### Check if this trade is more recent than the one stored in the DataFrame ###
+                    if int(latest_trade['time']) > int(cryptos_df[(cryptos_df['platform'] == "Binance") & (cryptos_df['pair'] == data['symbol'])]['time']):
+                        
+                        ### This pair trade is most recent so Store/Replace the trade line of this pair inside the DataFrame
+                        cryptos_df = modify_dataframe_values(cryptos_df, index, crypto, latest_trade_price, volume_trade, trade_cost, trade_type, time, crypto_balance, next_buy_price, next_buy_volume, next_sell_price, next_sell_volume)
+                        
+                        ### Send a Telegram notifitcation of this new trade ###
+                        text = text_message("Binance", crypto, trade_type, volume_trade, str(balance['asset']), latest_trade_price, "USDT", next_buy_volume, next_buy_price, next_sell_volume, next_sell_price)                
+                        SendMarkdown(chat_id=chat_id, text=text, token=telegram_token)
                 
                 
                 else:
-                    print(trades[-1])
+
+                    ### This trade is not inside the DataFrame then store it as a new trade inside the DataFrame ###
+                    cryptos_df = append_dataframe(cryptos_df, "Binance", crypto, pair, latest_trade_price, volume_trade, trade_cost, trade_type, time, crypto_balance, next_buy_price, next_buy_volume, next_sell_price, next_sell_volume)            
+                    
+                    ### Send a Telegram notification of this new trade ###
+                    text = text_message("Binance", crypto, trade_type, volume_trade, str(balance['asset']), latest_trade_price, "USDT", next_buy_volume, next_buy_price, next_sell_volume, next_sell_price)
+                    SendMarkdown(chat_id=chat_id, text=text, token=telegram_token)
 
 
-
-
+### Store the final DataFrame into the CSV file as DataBase of most recent trades ###
 cryptos_df.to_csv("data/cryptos.csv", index=False)
