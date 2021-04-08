@@ -93,7 +93,7 @@ class BinanceAPI(object):
 
         self.response = requests.get(url, params = data, headers = headers)
 
-        # print(self.response.json())
+        #print(self.response.json())
 
         if self.response.status_code not in (200, 201, 202):
             self.response.raise_for_status()
@@ -138,6 +138,7 @@ class BinanceAPI(object):
         if not self.key or not self.secret:
             raise Exception('Either key or secret is not set! (Use `load_key()`.')
 
+        data['recvWindow'] = 30000
         data['timestamp'] = self._timestamp
         data['signature'] = self._sign(data)
         urlpath = '/' + 'api' + '/' + self.apiversion + "/" + method

@@ -234,7 +234,7 @@ if __name__ == '__main__':
                 ### Check if this trade pair is inside the DataFrame ###
                 if data['symbol'] in list(cryptos_df[cryptos_df['platform'] == 'Binance']['pair']):
 
-                    index = (cryptos_df[cryptos_df['platform'] == 'Binance']['pair'] == data['symbol'])
+                    index = (cryptos_df['platform'] == "Binance") & (cryptos_df['pair'] == data['symbol'])
                     
                     ### Check if this trade is more recent than the one stored in the DataFrame ###
                     if int(latest_trade['time']) > int(cryptos_df[(cryptos_df['platform'] == "Binance") & (cryptos_df['pair'] == data['symbol'])]['time']):
