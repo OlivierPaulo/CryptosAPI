@@ -4,6 +4,7 @@ import os
 import time
 import pandas as pd
 from Telegram.sendmarkdown import SendMarkdown
+import json
 
 DATA_PATH = "data/cryptos.csv"
 
@@ -82,16 +83,10 @@ if __name__ == '__main__':
 ####################
 
     ## Declare Kraken Cryptos Symbol / Money
-    kraken_cryptos_dict = {
-        "ZEUR":"Euro",
-        "ZUSD":"Dollar",
-        "XXBT":"Bitcoin",
-        "XXRP":"Ripple",
-        "XXLM":"Stellar",
-        "XXMR":"Monero",
-        "EOS":"Eos",
-        "XDOT":"Polkadot"
-    }
+    
+    with open("data/kraken_dict.json") as krakenfile:
+        kraken_cryptos_dict = json.load(krakenfile)
+
 
     ### Requesting Kraken Balance ###
     kraken_balance_api = KrakenAPI(key=os.environ.get("KRAKEN_API_KEY"), secret=os.environ.get("KRAKEN_API_SECRET"))
@@ -128,7 +123,7 @@ if __name__ == '__main__':
 
             ### Check if this trade is more recent than the one stored in the DataFrame ### 
             if int(kraken_trade_request['result']['trades'][trade]['time']) > int(cryptos_df[(cryptos_df['platform'] == 'Kraken') & (cryptos_df['pair'] == kraken_trade_request['result']['trades'][trade]['pair'])]['time']):
-                index = (cryptos_df[cryptos_df['platform'] == 'Kraken']['pair'] == kraken_trade_request['result']['trades'][trade]['pair'])
+                index = (cryptos_df['platform'] == 'Kraken') & (cryptos_df['pair'] == kraken_trade_request['result']['trades'][trade]['pair'])
 
                 crypto = str(kraken_cryptos_dict[kraken_trade_request['result']['trades'][trade]['pair'][0:4]])
                 pair = str(kraken_trade_request['result']['trades'][trade]['pair'])
@@ -176,22 +171,8 @@ if __name__ == '__main__':
 ### BINANCE TRADE ###
 #####################
 
-    binance_cryptos_dict = {
-        "EUR": "Euro",
-        "USD": "Dollar",
-        "USDT": "Tether",
-        "BTC": "Bitcoin",
-        "ADA": "Cardano",
-        "CHZ": "Chiliz",
-        "SUSHI": "SushiSwap",
-        "UNI": "Uniswap",
-        "DOGE": "Dogecoin",
-        "AAVE": "Aave",
-        "ETH": "Ethereum",
-        "BNB": "Binance Coin",
-        "LINK": "Chainlink"
-    }
-
+    with open("data/binance_dict.json") as binancefile:
+        binance_cryptos_dict = json.load(binancefile)
 
     Binance_api = BinanceAPI(key=os.environ.get("BINANCE_API_KEY"), secret=os.environ.get("BINANCE_API_SECRET"))
     data = {
