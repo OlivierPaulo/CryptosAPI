@@ -12,16 +12,16 @@ def read_data():
     return pd.read_csv(DATA_PATH)
 
 def buy_volume(crypto_balance):
-    return round(float(crypto_balance*0.053), 3)
+    return round(float(crypto_balance*0.053), 5)
 
 def buy_price(latest_trade_price):
-    return round(float(latest_trade_price*0.9), 3)
+    return round(float(latest_trade_price*0.9), 5)
 
 def sell_volume(crypto_balance):
-    return round(float(crypto_balance*0.05), 3)
+    return round(float(crypto_balance*0.05), 5)
 
 def sell_price(latest_trade_price):
-    return round(float(latest_trade_price*1.1), 3)
+    return round(float(latest_trade_price*1.1), 5)
 
 def modify_dataframe_values(df, index, crypto, latest_trade_price, volume_trade, trade_cost, trade_type, time, crypto_balance, next_buy_price, next_buy_volume, next_sell_price, next_sell_volume):
     df.loc[index, 'latest_trade_price'] = latest_trade_price
@@ -127,12 +127,12 @@ if __name__ == '__main__':
 
                 crypto = str(kraken_cryptos_dict[kraken_trade_request['result']['trades'][trade]['pair'][0:4]])
                 pair = str(kraken_trade_request['result']['trades'][trade]['pair'])
-                latest_trade_price = round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)
-                volume_trade = round(float(kraken_trade_request['result']['trades'][trade]['vol']), 3)
-                trade_cost = round(float(kraken_trade_request['result']['trades'][trade]['cost']), 3)
+                latest_trade_price = round(float(kraken_trade_request['result']['trades'][trade]['price']), 5)
+                volume_trade = round(float(kraken_trade_request['result']['trades'][trade]['vol']), 5)
+                trade_cost = round(float(kraken_trade_request['result']['trades'][trade]['cost']), 5)
                 trade_type = str(kraken_trade_request['result']['trades'][trade]['type'])
                 time = int(kraken_trade_request['result']['trades'][trade]['time'])
-                crypto_balance = round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)
+                crypto_balance = round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 5)
                 next_buy_price = buy_price(latest_trade_price)
                 next_buy_volume = buy_volume(crypto_balance)
                 next_sell_price = sell_price(latest_trade_price)
@@ -150,12 +150,12 @@ if __name__ == '__main__':
             ### This trade is not inside the DataFrame then store it as a new trade inside the DataFrame ### 
             crypto = str(kraken_cryptos_dict[kraken_trade_request['result']['trades'][trade]['pair'][0:4]])
             pair = str(kraken_trade_request['result']['trades'][trade]['pair'])
-            latest_trade_price = round(float(kraken_trade_request['result']['trades'][trade]['price']), 3)
-            volume_trade = round(float(kraken_trade_request['result']['trades'][trade]['vol']), 3)
-            trade_cost = round(float(kraken_trade_request['result']['trades'][trade]['cost']), 3)
+            latest_trade_price = round(float(kraken_trade_request['result']['trades'][trade]['price']), 5)
+            volume_trade = round(float(kraken_trade_request['result']['trades'][trade]['vol']), 5)
+            trade_cost = round(float(kraken_trade_request['result']['trades'][trade]['cost']), 5)
             trade_type = str(kraken_trade_request['result']['trades'][trade]['type'])
             time = int(kraken_trade_request['result']['trades'][trade]['time'])
-            crypto_balance = round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 3)
+            crypto_balance = round(float(kraken_balance_request['result'][kraken_trade_request['result']['trades'][trade]['pair'][0:4]]), 5)
             next_buy_price = buy_price(latest_trade_price)
             next_buy_volume = buy_volume(crypto_balance)
             next_sell_price = sell_price(latest_trade_price)
@@ -198,15 +198,15 @@ if __name__ == '__main__':
                 latest_trade = trades[-1]
                 crypto = str(binance_cryptos_dict[str(balance['asset'])])
                 pair = str(data['symbol'])
-                latest_trade_price = round(float(latest_trade['price']), 3)
-                volume_trade = round(float(latest_trade['qty']), 3)
-                trade_cost = round(float(latest_trade['quoteQty']), 3)
+                latest_trade_price = round(float(latest_trade['price']), 5)
+                volume_trade = round(float(latest_trade['qty']), 5)
+                trade_cost = round(float(latest_trade['quoteQty']), 5)
                 if latest_trade['isBuyer']:
                     trade_type = "buy"
                 else:
                     trade_type = "sell"
                 time = int(latest_trade['time'])
-                crypto_balance = round(float(balance['free']) + float(balance['locked']), 3)
+                crypto_balance = round(float(balance['free']) + float(balance['locked']), 5)
                 next_buy_price = buy_price(latest_trade_price)
                 next_buy_volume = buy_volume(crypto_balance)
                 next_sell_price = sell_price(latest_trade_price)
