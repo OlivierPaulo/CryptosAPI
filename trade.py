@@ -184,7 +184,7 @@ if __name__ == '__main__':
     
     for balance in balances['balances']:
         
-        if (float(balance['free']) + float(balance['locked']) > 0.0) and (balance['asset'] not in ['USDT','WABI','NVT']):
+        if (float(balance['free']) + float(balance['locked']) > 0.0) and (balance['asset'] not in ['USDT','WABI','NVT', 'NFT']):
             #print(f"{balance['asset']} : {float(balance['free']) + float(balance['locked'])}")
 
             data = {
